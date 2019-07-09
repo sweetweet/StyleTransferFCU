@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Styler</string>
+    <string name="btn_image_from_local">image from local</string>
+    <string name="btn_image_from_camera">image from camera</string>
+    <string name="btn_transfer">Transfer</string>
+    <string name="image">image</string>
+    <string name="transformed_image">transformed image</string>
+</resources>

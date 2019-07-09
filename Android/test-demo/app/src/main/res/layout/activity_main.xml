@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#3F51B5"
+    tools:context=".MainActivity">
+
+    <ImageButton
+        android:id="@+id/btn_image_local"
+        android:layout_width="121dp"
+        android:layout_height="115dp"
+        android:layout_marginStart="64dp"
+        android:layout_marginBottom="120dp"
+        android:contentDescription="@string/btn_image_from_local"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@android:drawable/stat_notify_more" />
+
+    <ImageButton
+        android:id="@+id/btn_image_camera"
+        android:layout_width="112dp"
+        android:layout_height="113dp"
+        android:layout_marginEnd="64dp"
+        android:layout_marginBottom="120dp"
+        android:contentDescription="@string/btn_image_from_camera"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@android:drawable/ic_menu_camera" />
+
+    <Button
+        android:id="@+id/btn_transfer"
+        android:layout_width="168dp"
+        android:layout_height="62dp"
+        android:layout_marginBottom="24dp"
+        android:text="@string/btn_transfer"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="181dp"
+        android:layout_height="188dp"
+        android:layout_marginTop="64dp"
+        android:contentDescription="@string/image"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="8dp"
+        tools:srcCompat="@tools:sample/avatars[2]" />
+
+    <ImageView
+        android:id="@+id/imageView_transform"
+        android:layout_width="181dp"
+        android:layout_height="188dp"
+        android:layout_marginTop="64dp"
+        android:layout_marginEnd="8dp"
+        android:contentDescription="@string/transformed_image"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:srcCompat="@tools:sample/avatars[2]" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
