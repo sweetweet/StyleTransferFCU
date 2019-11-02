@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#2196F3"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:id="@+id/linearLayout4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        tools:ignore="ContentDescription,MissingConstraints,RtlHardcoded">
+
+        <ImageButton
+            android:id="@+id/btn_next"
+            android:layout_width="80dip"
+            android:layout_height="80dip"
+            android:layout_marginTop="16dip"
+            android:background="@drawable/btn_next_24dp"
+            android:onClick="second_activity" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dip"
+        android:layout_marginTop="70dp"
+        android:layout_marginEnd="30dip"
+        android:layout_marginBottom="120dip"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout4"
+        tools:ignore="ContentDescription">
+
+        <ImageView
+            android:id="@+id/content_imgView"
+            android:layout_width="250dip"
+            android:layout_height="250dip"
+            android:scaleType="centerInside"
+            android:transitionName="content_image"
+            tools:srcCompat="@tools:sample/avatars" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="65dip"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="ContentDescription">
+
+        <ImageButton
+            android:id="@+id/btn_camera"
+            android:layout_width="80dip"
+            android:layout_height="80dip"
+            android:layout_marginEnd="40dip"
+            android:onClick="open_camera"
+            android:background="@drawable/btn_camera_30dp" />
+
+        <ImageButton
+            android:id="@+id/btn_album"
+            android:layout_width="80dip"
+            android:layout_height="80dip"
+            android:layout_marginStart="40dip"
+            android:onClick="open_album"
+            android:background="@drawable/btn_album_30dp" />
+
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

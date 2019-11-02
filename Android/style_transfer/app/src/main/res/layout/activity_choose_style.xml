@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".chooseStyle">
+
+    <LinearLayout
+        android:id="@+id/linearLayout3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dip"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/img_content_small_150"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dip"
+            android:maxWidth="100dip"
+            android:maxHeight="100dip"
+            android:onClick="go_back"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            tools:srcCompat="@tools:sample/avatars"
+            android:transitionName="content_image"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dip"
+            android:background="@drawable/btn_transfer_bkgd"
+            android:text="@string/transfer"
+            android:onClick="transfer" />
+
+
+    </LinearLayout>
+    <!--显示选择的风格图片-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="80dip"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout2"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="MissingConstraints">
+
+        <ImageView
+            android:id="@+id/imageView_style"
+            android:layout_width="200dip"
+            android:layout_height="200dip"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/style_1_starry" />
+    </LinearLayout>
+
+    <!--底部的滚轮-->
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="80dip"
+        android:layout_marginBottom="40dip"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:layout_editor_absoluteX="8dip">
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:ignore="UselessParent">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                tools:ignore="ContentDescription">
+
+                <ImageView
+                    android:id="@+id/img_style_1"
+                    android:tag="1"
+                    style="@style/Scroll_image_style"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/style_1_starry" />
+
+                <ImageView
+                    android:id="@+id/img_style_2"
+                    android:tag="2"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_2_rain_princess" />
+
+                <ImageView
+                    android:id="@+id/img_style_3"
+                    android:tag="3"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_3_the_scream" />
+
+                <ImageView
+                    android:id="@+id/img_style_4"
+                    android:tag="4"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_4_the_shipwreck_of_the_minotaur" />
+
+                <ImageView
+                    android:id="@+id/img_style_5"
+                    android:tag="5"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_5_wave" />
+
+                <ImageView
+                    android:id="@+id/img_style_6"
+                    android:tag="6"
+                    style="@style/Scroll_image_style"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/style_6_composition" />
+
+                <ImageView
+                    android:id="@+id/img_style_7"
+                    android:tag="7"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_7_guernica" />
+
+                <ImageView
+                    android:id="@+id/img_style_8"
+                    android:tag="8"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_8_udnie" />
+
+                <ImageView
+                    android:id="@+id/img_style_9"
+                    android:tag="9"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_9_white_zig_zags" />
+
+                <ImageView
+                    android:id="@+id/img_style_10"
+                    android:tag="10"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_10_yellow_sunset" />
+
+                <ImageView
+                    android:id="@+id/img_style_11"
+                    android:tag="11"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_11_three_fishing_boats" />
+
+                <ImageView
+                    android:id="@+id/img_style_12"
+                    android:tag="12"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_12_la_muse" />
+
+                <ImageView
+                    android:id="@+id/img_style_13"
+                    android:tag="13"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_13_ddith_with_dtriped_dress" />
+
+                <ImageView
+                    android:id="@+id/img_style_14"
+                    android:tag="14"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_14_colors_from_a_distance" />
+
+                <ImageView
+                    android:id="@+id/img_style_15"
+                    android:tag="15"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_15_sunrise" />
+
+            </LinearLayout>
+        </HorizontalScrollView>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
