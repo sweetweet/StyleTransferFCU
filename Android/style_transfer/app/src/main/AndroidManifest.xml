@@ -16,8 +16,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".show_styler"></activity>
-        <activity android:name=".chooseStyle"></activity>
+        <activity android:name=".show_styler"/>
+        <activity android:name=".chooseStyle"/>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
