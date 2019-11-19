@@ -7,6 +7,7 @@
     android:layout_height="match_parent"
     android:layout_centerHorizontal="true"
     android:layout_centerVertical="true"
+    android:background="@drawable/bg"
     tools:context=".show_styler">
 
     <ImageView
@@ -33,7 +34,7 @@
             android:id="@+id/result_bg"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#ff000000"
+            android:background="#8B7B8B"
             tools:ignore="ContentDescription" />
 
         <com.bm.library.PhotoView

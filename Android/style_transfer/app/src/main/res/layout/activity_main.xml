@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2196F3"
+    android:background="@drawable/bg"
     tools:context=".MainActivity">
 
     <LinearLayout
@@ -87,7 +87,7 @@
             android:id="@+id/bg"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#ff000000"
+            android:background="#8B7B8B"
             tools:ignore="ContentDescription" />
 
         <com.bm.library.PhotoView
