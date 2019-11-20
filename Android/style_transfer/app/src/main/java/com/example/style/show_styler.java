@@ -1,25 +1,45 @@
 package com.example.style;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.UiThread;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationCompat.Builder;
+import androidx.core.content.FileProvider;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.media.Image;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
+import android.os.RemoteCallbackList;
 import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -31,6 +51,7 @@ import android.widget.Toast;
 
 import com.bm.library.Info;
 import com.bm.library.PhotoView;
+
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 import org.tensorflow.lite.Interpreter;
 import org.tensorflow.lite.Tensor;
@@ -38,9 +59,11 @@ import org.tensorflow.lite.gpu.GpuDelegate;
 import org.tensorflow.lite.nnapi.NnApiDelegate;
 import org.tensorflow.lite.support.image.TensorImage;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
@@ -54,17 +77,16 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import static android.app.PendingIntent.FLAG_UPDATE_CURRENT;
 import static android.widget.ImageView.ScaleType.FIT_CENTER;
 
 public class show_styler extends AppCompatActivity {
-    Bitmap content_bitmap;
-    int flag = 1;
     public static final int CROP = 3;
     String imgPath;
     ImageView result_imgView;
-    //    Bitmap content_bitmap = null;
-    Bitmap resized_bitmap_withBorder = null;
     Bitmap result = null;
+    String resultPath;
+    Uri resultUri;
     Uri croppedUri;
     View mParent;
     //点击放大后的背景
@@ -75,49 +97,21 @@ public class show_styler extends AppCompatActivity {
     AlphaAnimation in = new AlphaAnimation(0, 1);
     AlphaAnimation out = new AlphaAnimation(1, 0);
 
-    private ByteBuffer imgData;
-    private ByteBuffer controlData;
+    Boolean isCurrentActivity = true;
 
-
-    private TensorFlowInferenceInterface inferenceInterface;
-    private Interpreter tflite;
-
-    private static final String MODEL_FILE_PATH = "file:///android_asset/a_frozen.pb";
-    private static final String MODEL_FILE = "a_640_quan.tflite";
-//    private static final String MODEL_FILE = "a_640.tflite";
-
-    private static final String INPUT_NODE = "input_image";
-    private static final String CONTROL_NODE = "style_control";
-    private static final String OUTPUT_NODE = "output_image";
-    private static final int NUM_STYLES = 15;
-    public static final int INPUT_SCALE = 640;
-
-    GpuDelegate gpuDelegate = null;
-    NnApiDelegate nnapiDelegate = null;
-
-    private int content_width;
-    private int content_height;
-    private int resized_width;
-    private int resized_height;
-
-    private long totalTime;
+    private String totalTime;
     public int style_number;
 
-    private float[] style_control;
-    private int[] input_intValues;
-    private float[] input_floatValues;
-    private float[] output_floatValues;
-    private float[][][] output_3d_floatValues;
-    private int[] output_intValues;
+    ServiceConnection connection;
+    public MyReceiver receiver;
 
-    DecimalFormat decimalFormat = new DecimalFormat(".00");
-
-    private Bitmap.Config config;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.i("113", "on create");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_styler);
+
         View decorView = getWindow().getDecorView();
         int option = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
@@ -128,60 +122,93 @@ public class show_styler extends AppCompatActivity {
         actionBar.hide();
         result_imgView = findViewById(R.id.result_imgView);
         mBtnCrop = findViewById(R.id.btn_crop);
+
         Intent getImage = getIntent();
         if (getImage != null) {
             Bundle bd = getImage.getExtras();
             assert bd != null;
-
             style_number = bd.getInt("style_number");
 //            flag = bd.getInt("model_mode");
             imgPath = bd.getString("imgPath");
-
+//
+//            new Thread(() -> {
             Bitmap smallBitmap = getSmallBitmap(imgPath);
             assert smallBitmap != null;
-            config = smallBitmap.getConfig();
             Bitmap blurBitmap = FastBlurUtil.toBlur(smallBitmap, 10);
+//                runOnUiThread(() -> {
             result_imgView.setScaleType(FIT_CENTER);
             result_imgView.setImageBitmap(blurBitmap);
             result_imgView.setClickable(false);
+//                });
+//            }).start();
 
-            new Thread() {
+            Log.i("113", "set imageview");
+
+            Intent intent = new Intent(this, transferService.class);
+            connection = new ServiceConnection() {
                 @Override
-                public void run() {
-//                    Bitmap smallBitmap = getSmallBitmap(imgPath);
-//                    assert smallBitmap != null;
-//                    Log.i("113","width:" +smallBitmap.getWidth()+"height: "+ smallBitmap.getHeight());
-//                    config = smallBitmap.getConfig();
-//
-//                    Bitmap blurBitmap = FastBlurUtil.toBlur(smallBitmap, 10);
-                    loadModel();
-                    show_styler.this.runOnUiThread(() -> {
-//                        result_imgView.setImageBitmap(smallBitmap);//显示到ImageView上
-//                        result_imgView.setScaleType(FIT_CENTER);
-//                        result_imgView.setImageBitmap(blurBitmap);
-//                        result_imgView.setClickable(false);
-
-                        Toast.makeText(show_styler.this, "style_number:" + style_number, Toast.LENGTH_SHORT).show();
-                    });
-
-                    content_bitmap = BitmapFactory.decodeFile(imgPath);
-
-                    final long startTime = SystemClock.uptimeMillis();
-                    try {
-                        result = style_image(content_bitmap);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    totalTime = SystemClock.uptimeMillis() - startTime;
-                    String time = decimalFormat.format((float)totalTime / 1000.0);
-
-                    show_styler.this.runOnUiThread(() -> {
-                        result_imgView.setImageBitmap(result);
-                        result_imgView.setClickable(true);
-                        Toast.makeText(show_styler.this, "totoal time: " + time + "s", Toast.LENGTH_SHORT).show();
-                    });
+                public void onServiceConnected(ComponentName name, IBinder service) {
+                    Log.i("113", "service connection ");
+                    transferService.MyBinder binder = (transferService.MyBinder) service;
+                    transferService mService = binder.getService();
+                    mService.setImagePath(imgPath);
+                    mService.setStyleNumber(style_number);
                 }
-            }.start();
+
+                @Override
+                public void onServiceDisconnected(ComponentName name) {
+                    Log.i("113", "disconnected");
+                }
+            };
+
+            bindService(intent, connection, Context.BIND_AUTO_CREATE);
+
+//            intent.putExtra("imagePath",imgPath);
+//            intent.putExtra("styleNumber",style_number);
+//            startService(intent);
+            receiver = new MyReceiver();
+            IntentFilter filter = new IntentFilter();
+            filter.addAction("BROADCAST");
+            this.registerReceiver(receiver, filter);
+            Log.i("113", "register successfully");
+
+//            new Thread() {
+//                @Override
+//                public void run() {
+////                    Bitmap smallBitmap = getSmallBitmap(imgPath);
+////                    assert smallBitmap != null;
+////                    Log.i("113","width:" +smallBitmap.getWidth()+"height: "+ smallBitmap.getHeight());
+////                    config = smallBitmap.getConfig();
+////
+////                    Bitmap blurBitmap = FastBlurUtil.toBlur(smallBitmap, 10);
+//                    loadModel();
+//                    show_styler.this.runOnUiThread(() -> {
+////                        result_imgView.setImageBitmap(smallBitmap);//显示到ImageView上
+////                        result_imgView.setScaleType(FIT_CENTER);
+////                        result_imgView.setImageBitmap(blurBitmap);
+////                        result_imgView.setClickable(false);
+//
+//                        Toast.makeText(show_styler.this, "style_number:" + style_number, Toast.LENGTH_SHORT).show();
+//                    });
+//
+//                    content_bitmap = BitmapFactory.decodeFile(imgPath);
+//
+//                    final long startTime = SystemClock.uptimeMillis();
+//                    try {
+//                        result = style_image(content_bitmap);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                    totalTime = SystemClock.uptimeMillis() - startTime;
+//                    String time = decimalFormat.format((float)totalTime / 1000.0);
+//                    saveBitmapFile(result);
+//                    show_styler.this.runOnUiThread(() -> {
+//                        result_imgView.setImageBitmap(result);
+//                        result_imgView.setClickable(true);
+//                        Toast.makeText(show_styler.this, "totoal time: " + time + "s", Toast.LENGTH_SHORT).show();
+//                    });
+//                }
+//            }.start();
         }
 
         in.setDuration(300);
@@ -205,204 +232,106 @@ public class show_styler extends AppCompatActivity {
 
         mParent = findViewById(R.id.result_parent);
         mBg = findViewById(R.id.result_bg);
-        mPhotoView =  findViewById(R.id.result_img);
+        mPhotoView = findViewById(R.id.result_img);
         mPhotoView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
     }
 
-    private void loadModel() {
-        try {
-            if (flag == 0) {
-                Interpreter.Options tfliteOptions = new Interpreter.Options();
-                gpuDelegate = new GpuDelegate();
-                nnapiDelegate = new NnApiDelegate();
-//                tfliteOptions.addDelegate(gpuDelegate);
-                tfliteOptions.addDelegate(nnapiDelegate);
-                tflite = new Interpreter(loadModelFile(this), tfliteOptions);
-                imgData = ByteBuffer.allocateDirect(INPUT_SCALE * INPUT_SCALE * 3 * 4);
-                imgData.order(ByteOrder.nativeOrder());
-                controlData = ByteBuffer.allocateDirect(NUM_STYLES * 4);
-                controlData.order(ByteOrder.nativeOrder());
-            } else if (flag == 1) {
-                inferenceInterface = new TensorFlowInferenceInterface(getAssets(), MODEL_FILE_PATH);
-//                final Graph g = inferenceInterface.graph();
-//                final Operation inputOp = g.operation(INPUT_NODE);
-//                final Operation styleOp = g.operation(CONTROL_NODE);
-//                final Operation outputOp = g.operation(OUTPUT_NODE);
-//                if (inputOp == null) {
-//                    throw new RuntimeException("Failed to find input Node '" + INPUT_NODE + "'");
-//                }
-//                if (styleOp == null) {
-//                    throw new RuntimeException("Failed to find input Node '" + CONTROL_NODE + "'");
-//                }
-//                if (outputOp == null) {
-//                    throw new RuntimeException("Failed to find input Node '" + OUTPUT_NODE + "'");
-//                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        Log.i("111", "load model");
-    }
-
-    private MappedByteBuffer loadModelFile(Activity activity) throws IOException {
-        AssetFileDescriptor fileDescriptor = activity.getAssets().openFd(MODEL_FILE);
-        FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
-        FileChannel fileChannel = inputStream.getChannel();
-        long startOffset = fileDescriptor.getStartOffset();
-        long declaredLength = fileDescriptor.getDeclaredLength();
-        return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
-    }
-
-    /*缩小图片，并加黑色底填充到 INPUT_SCALE大小*/
-    private Bitmap image_preProcessing(Bitmap bitmap) {
-
-        int height = bitmap.getHeight();
-        int width = bitmap.getWidth();
-
-        content_height = height;
-        content_width = width;
-
-        Log.i("image_preProcessing", "content_height: " + content_height + " content_width: " + content_width);
-
-        int new_height;
-        int new_width;
-
-        if (height > width) {
-            new_height = INPUT_SCALE;
-            new_width = (width * new_height / height);
-        } else if (height < width) {
-            new_width = INPUT_SCALE;
-            new_height = (height * new_width / width);
-        } else {
-            new_width = INPUT_SCALE;
-            new_height = INPUT_SCALE;
-        }
-        resized_width = new_width;
-        resized_height = new_height;
-        Log.i("image_preProcessing", "resized_height: " + new_height + " resized_width: " + new_width);
-        Bitmap resized_image = Bitmap.createScaledBitmap(bitmap, new_width, new_height, true);
-
-        Bitmap bmpWithBorder = Bitmap.createBitmap(INPUT_SCALE, INPUT_SCALE, config);
-
-        Canvas canvas = new Canvas(bmpWithBorder);
-        canvas.drawColor(Color.BLACK);
-        canvas.drawBitmap(resized_image, 0, 0, null);
-        return bmpWithBorder;
-    }
-
-    /*输出模型的图片转成原大小*/
-    private Bitmap image_reverse(Bitmap bitmap) {
-        Log.i("image reverse", "intput bitmap Width: " + bitmap.getWidth() + " intput bitmap Height: " + bitmap.getHeight());
-
-        Bitmap cropped_image = Bitmap.createBitmap(bitmap, 0, 0, resized_width, resized_height, null, false);
-        Matrix matrix = new Matrix();
-        float ratio = (float) content_height / resized_height;
-        matrix.preScale(ratio, ratio);
-        Bitmap resized_bitmap = Bitmap.createBitmap(cropped_image, 0, 0, resized_width, resized_height, matrix, true);
-        Log.i("image reverse", "resized_bitmap_height: " + resized_bitmap.getWidth() + " resized_bitmap_width: " + resized_bitmap.getHeight());
-        return resized_bitmap;
-    }
-
-    /*设置Style control array*/
-    private void set_style_control() {
-        style_control = new float[NUM_STYLES];
-        Arrays.fill(style_control, 0);
-        style_control[style_number - 1] = 1;
-        Log.i("set_style_control", Arrays.toString(style_control));
-    }
-
-    /*bitmap转成可以输入模型的参数
-     * load model*/
-    private Bitmap prepare(Bitmap bitmap) throws IOException {
-
-        set_style_control();
-        input_intValues = new int[INPUT_SCALE * INPUT_SCALE];
-        input_floatValues = new float[INPUT_SCALE * INPUT_SCALE * 3];
-
-        output_intValues = new int[INPUT_SCALE * INPUT_SCALE];
-        output_floatValues = new float[INPUT_SCALE * INPUT_SCALE * 3];
-        output_3d_floatValues = new float[INPUT_SCALE][INPUT_SCALE][3];
-        resized_bitmap_withBorder = image_preProcessing(bitmap);
-        return resized_bitmap_withBorder;
-    }
-
-
-    /*输入模型*/
-    private Bitmap style_image(Bitmap bitmap) throws IOException {
-        Bitmap processed_bitmap = prepare(bitmap);
-        processed_bitmap.getPixels(input_intValues, 0, INPUT_SCALE, 0, 0, INPUT_SCALE, processed_bitmap.getHeight());
-
-        for (int i = 0; i < input_intValues.length; ++i) {
-            final int val = input_intValues[i];
-            input_floatValues[i * 3] = ((val >> 16) & 0xFF) / 255.0f;
-            input_floatValues[i * 3 + 1] = ((val >> 8) & 0xFF) / 255.0f;
-            input_floatValues[i * 3 + 2] = (val & 0xFF) / 255.0f;
+    public class MyReceiver extends BroadcastReceiver {
+        //自定义一个广播接收器
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Bundle bundle = intent.getExtras();
+            assert bundle != null;
+            resultUri = Uri.parse(bundle.getString("uri"));
+            resultPath = bundle.getString("path");
+            totalTime = bundle.getString("time");
+            Log.i("113", "result uri: " + resultUri);
+            unbindService(connection);
+            showResult();
+            if(!isCurrentActivity)
+                sendNotification();
         }
 
-        Log.i("style_image", "Width: " + processed_bitmap.getWidth() + ", Height: " + processed_bitmap.getHeight());
-
-        try {
-            if (flag == 1) {
-                inferenceInterface.feed(CONTROL_NODE, style_control, NUM_STYLES);
-                inferenceInterface.feed(INPUT_NODE, input_floatValues, processed_bitmap.getWidth(), processed_bitmap.getHeight(), 3);
-
-                inferenceInterface.run(new String[]{OUTPUT_NODE});
-                inferenceInterface.fetch(OUTPUT_NODE, output_floatValues);
-                for (int i = 0; i < output_intValues.length; ++i) {
-                    output_intValues[i] =
-                            0xFF000000
-                                    | (((int) (output_floatValues[i * 3])) << 16)
-                                    | (((int) (output_floatValues[i * 3 + 1])) << 8)
-                                    | ((int) (output_floatValues[i * 3 + 2]));
-                }
-
-                Log.i("111", "RGB: " + output_floatValues[0] + " "
-                        + output_floatValues[1] + " "
-                        + output_floatValues[2]);
-            } else {
-                imgData.rewind();
-                for (int i = 0; i < INPUT_SCALE; ++i) {
-                    for (int j = 0; j < INPUT_SCALE; ++j) {
-                        int pixelValue = input_intValues[i * INPUT_SCALE + j];
-                        // Quantized model
-                        imgData.put((byte) ((pixelValue >> 16) & 0xFF));
-                        imgData.put((byte) ((pixelValue >> 8) & 0xFF));
-                        imgData.put((byte) (pixelValue & 0xFF));
-                    }
-                }
-
-                controlData.rewind();
-                for (int i = 0; i < NUM_STYLES; i++) {
-                    controlData.put((byte) style_control[i]);
-                }
-//                tflite.run(imgData,output_floatValues);
-//                ByteBuffer[] inputs = {imgData, controlData};
-                Object[] inputs = {input_floatValues, style_control};
-
-                Log.i("1111", "style_control: " + Arrays.toString(style_control));
-                Map<Integer, Object> outputs = new HashMap<>();
-                outputs.put(0, output_3d_floatValues);
-                tflite.runForMultipleInputsOutputs(inputs, outputs);
-
-                for (int i = 0; i < output_3d_floatValues.length; ++i) {
-                    for (int j = 0; j < output_3d_floatValues[0].length; ++j) {
-                        output_intValues[i * output_3d_floatValues.length + j] =
-                                0xFF000000
-                                        | (((int) (output_3d_floatValues[i][j][0])) << 16)
-                                        | (((int) (output_3d_floatValues[i][j][1])) << 8)
-                                        | ((int) (output_3d_floatValues[i][j][2]));
-                    }
-                }
-            }
-            Log.i("style_image 3d", "output_intValues" + output_intValues[0]);
-        } catch (Exception e) {
-            e.printStackTrace();
+        public MyReceiver() {
         }
-        processed_bitmap.setPixels(output_intValues, 0, INPUT_SCALE, 0, 0, INPUT_SCALE, INPUT_SCALE);
-//        Toast.makeText(this, "Total time: "+totalTime +"ms", Toast.LENGTH_SHORT).show();
-        return image_reverse(processed_bitmap);
     }
 
+    private void sendNotification() {
+        Log.i("113", "notification");
+        Bitmap smallBitmap = getSmallBitmap(resultPath);
+        Intent intent = new Intent(this, this.getClass());
+        intent.setAction(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_LAUNCHER);
+//        intent.putExtra("flag", true);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        PendingIntent pIntent = PendingIntent.getActivity(this, 0, intent, FLAG_UPDATE_CURRENT);
+
+        NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        Notification notification = new NotificationCompat.Builder(this, "result")
+                .setContentTitle("风格转换完毕")
+                .setContentText("点击查看")
+                .set
+                .setWhen(System.currentTimeMillis())
+                .setSmallIcon(R.drawable.ic_launcher_background)
+                .setLargeIcon(smallBitmap)
+                .setStyle(new NotificationCompat.BigPictureStyle()
+                        .bigPicture(smallBitmap)
+                        .bigLargeIcon(null))
+                .setAutoCancel(true)
+                .setContentIntent(pIntent)
+                .build();
+        manager.notify(1, notification);
+    }
+
+    private void showResult() {
+        Bitmap bitmap = BitmapFactory.decodeFile(resultPath);
+        assert bitmap != null;
+        result_imgView.setImageBitmap(bitmap);
+        result_imgView.setClickable(true);
+        Toast.makeText(show_styler.this, "totoal time: " + totalTime + "s", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onResume() {
+        Log.i("113", "on resume");
+        isCurrentActivity = true;
+        super.onResume();
+    }
+
+    @Override
+    protected void onStart() {
+        Log.i("113","on start");
+        super.onStart();
+    }
+
+    @Override
+    protected void onRestart() {
+        Log.i("113", "on restart");
+        super.onRestart();
+    }
+
+    @Override
+    protected void onStop() {
+        Log.i("113", "on stop");
+        isCurrentActivity = false;
+        super.onStop();
+    }
+
+    @Override
+    protected void onPause() {
+        Log.i("113", "on Pause");
+        isCurrentActivity = false;
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+//        if(result_flag)
+        Log.i("113", "on destroy");
+        unregisterReceiver(receiver);
+        super.onDestroy();
+    }
 
     public static Bitmap getSmallBitmap(String filePath) {
         final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -451,6 +380,7 @@ public class show_styler extends AppCompatActivity {
             mPhotoView.animaTo(mInfo, () -> mParent.setVisibility(View.GONE));
         });
     }
+
     @Override
     public void onBackPressed() {
         if (mParent.getVisibility() == View.VISIBLE) {
@@ -463,10 +393,10 @@ public class show_styler extends AppCompatActivity {
     }
 
     public void cropImage(View view) {
-        Log.i("111","crop image");
+        Log.i("111", "crop image");
         croppedUri = null;
         @SuppressLint("SimpleDateFormat") String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp;
+        String imageFileName = "RESULT_CROP_" + timeStamp;
         String fff = "file://" + "/" + Environment.getExternalStorageDirectory() + "/Styler/"; //设置图片名称
         File fullFile = new File(fff, imageFileName + ".jpg"); //将图片路径转换成uri
         croppedUri = Uri.parse(fullFile.toString());
@@ -475,7 +405,7 @@ public class show_styler extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             cropIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         }
-        cropIntent.setDataAndType(Uri.parse(imgPath), "image/*");
+        cropIntent.setDataAndType(resultUri, "image/*");
         cropIntent.putExtra("crop", "true");
         cropIntent.putExtra("aspectX", 0.1);
         cropIntent.putExtra("aspectY", 0.1);
@@ -491,7 +421,7 @@ public class show_styler extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch(requestCode){
+        switch (requestCode) {
             case CROP:
                 if (croppedUri == null) {//如果没有选取照片，则直接返回
                     return;
@@ -500,7 +430,7 @@ public class show_styler extends AppCompatActivity {
                 Log.i("113", "cropped image uri: " + croppedUri);
                 if (resultCode == RESULT_OK) {
                     imgPath = MainActivity.getRealFilePath(this, croppedUri);
-                    result =  BitmapFactory.decodeFile(imgPath);
+                    result = BitmapFactory.decodeFile(imgPath);
                     result_imgView.setImageBitmap(result);
                     result_imgView.setClickable(true);
 
@@ -510,4 +440,5 @@ public class show_styler extends AppCompatActivity {
                 break;
         }
     }
+
 }

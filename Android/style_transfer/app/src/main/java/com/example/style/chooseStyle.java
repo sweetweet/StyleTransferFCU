@@ -160,6 +160,7 @@ public class chooseStyle extends AppCompatActivity {
         intent.putExtra("style_number", selected_tag);
 //        intent.putExtra("model_mode", flag);
         intent.putExtra("imgPath", imgPath);
+//        intent.putExtra("flag",false);
         ActivityOptionsCompat options = ActivityOptionsCompat
                 .makeSceneTransitionAnimation(this, content_imgView, "content_image");
         // start the new activity
