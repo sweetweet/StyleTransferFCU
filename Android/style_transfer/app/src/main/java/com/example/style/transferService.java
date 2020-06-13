@@ -37,6 +37,7 @@ public class transferService extends Service {
     File imageFile;
     public Uri resultUri;
     public int styleNumber;
+    public float quality;
     String log;
     long startTime;
     long totalTime;
@@ -48,12 +49,15 @@ public class transferService extends Service {
     private static final String CONTROL_NODE = "style_control";
     private static final String OUTPUT_NODE = "output_image";
     private static final int NUM_STYLES = 15;
-    public static final int INPUT_SCALE = 640;
+    public int INPUT_SCALE = 640;
 
     private int content_width;
     private int content_height;
     private int resized_width;
     private int resized_height;
+
+    int new_height;
+    int new_width;
 
     private float[] style_control;
     private int[] input_intValues;
@@ -80,15 +84,16 @@ public class transferService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        Log.i(TAG,"on unbind");
+        Log.i(TAG, "on unbind");
         return super.onUnbind(intent);
     }
 
     @Override
     public void onDestroy() {
-        Log.i(TAG,"on destroy");
+        Log.i(TAG, "on destroy");
         super.onDestroy();
     }
+
 
     public class MyBinder extends Binder {
         transferService getService() {
@@ -109,6 +114,11 @@ public class transferService extends Service {
         startTransform();
     }
 
+    public void setQuality(float quality) {
+        Log.i(TAG + ":quality", String.valueOf(quality));
+        this.quality = quality;
+        INPUT_SCALE = (int)(INPUT_SCALE * quality);
+    }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
@@ -130,26 +140,28 @@ public class transferService extends Service {
         new Thread(() -> {
             inferenceInterface = new TensorFlowInferenceInterface(getAssets(), MODEL_FILE_PATH);
             Bitmap content = BitmapFactory.decodeFile(imagePath);
+            int degree = MainActivity.readPictureDegree(imagePath);
+            if (degree != 0)
+                content = MainActivity.rotaingImageView(degree,content);
             set_style_control();
-            initial(INPUT_SCALE, INPUT_SCALE);
-
+//            initial(INPUT_SCALE, INPUT_SCALE);
             startTime = SystemClock.uptimeMillis();
             Bitmap result = style_image(content);
             totalTime = SystemClock.uptimeMillis() - startTime;
-            log += "\n total time: "+ totalTime;
-            Log.i(TAG,log);
+            log += "\n total time: " + totalTime;
+            Log.i(TAG, log);
 
-            a= SystemClock.uptimeMillis();
+            a = SystemClock.uptimeMillis();
             saveBitmapFile(result);
-            log += "\n save time: "+ (SystemClock.uptimeMillis() - a);
-            Log.i(TAG,log);
+            log += "\n save time: " + (SystemClock.uptimeMillis() - a);
+            Log.i(TAG, log);
 
             String time = decimalFormat.format((float) totalTime / 1000.0);
-            Log.i(TAG, "total time:" + time+"s");
+            Log.i(TAG, "total time:" + time + "s");
             Intent intent = new Intent();
-            intent.putExtra("uri",resultUri.toString());
-            intent.putExtra("path",imageFile.toString());
-            intent.putExtra("time",time);
+            intent.putExtra("uri", resultUri.toString());
+            intent.putExtra("path", imageFile.toString());
+            intent.putExtra("time", time);
             intent.setAction("BROADCAST");//action与接收器相同
 
             startTime = SystemClock.uptimeMillis();
@@ -169,19 +181,18 @@ public class transferService extends Service {
 
     private Bitmap style_image(Bitmap bitmap) {
 
-        a= SystemClock.uptimeMillis();
+        a = SystemClock.uptimeMillis();
         Bitmap processed_bitmap = image_preProcessing(bitmap);
-        log += "\n processed_bitmap time: "+ (SystemClock.uptimeMillis() - a);
-        Log.i(TAG,log);
+        log += "\n processed_bitmap time: " + (SystemClock.uptimeMillis() - a);
+        Log.i(TAG, log);
 
-        a= SystemClock.uptimeMillis();
+        a = SystemClock.uptimeMillis();
         processed_bitmap.getPixels(input_intValues, 0, INPUT_SCALE, 0, 0, INPUT_SCALE, processed_bitmap.getHeight());
-        log += "\n processed_bitmap.getPixels time: "+ (SystemClock.uptimeMillis() - a);
-        Log.i(TAG,log);
+        log += "\n processed_bitmap.getPixels time: " + (SystemClock.uptimeMillis() - a);
+        Log.i(TAG, log);
 
 
-
-        a= SystemClock.uptimeMillis();
+        a = SystemClock.uptimeMillis();
         for (int i = 0; i < input_intValues.length; ++i) {
             final int val = input_intValues[i];
             input_floatValues[i * 3] = ((val >> 16) & 0xFF) / 255.0f;
@@ -189,29 +200,29 @@ public class transferService extends Service {
             input_floatValues[i * 3 + 2] = (val & 0xFF) / 255.0f;
         }
 
-        log += "\n get input_floatValues time: "+ (SystemClock.uptimeMillis() - a);
-        Log.i(TAG,log);
+        log += "\n get input_floatValues time: " + (SystemClock.uptimeMillis() - a);
+        Log.i(TAG, log);
 //        Log.i("style_image", "Width: " + processed_bitmap.getWidth() + ", Height: " + processed_bitmap.getHeight());
 
         try {
 
-            a= SystemClock.uptimeMillis();
+            a = SystemClock.uptimeMillis();
             inferenceInterface.feed(CONTROL_NODE, style_control, NUM_STYLES);
             inferenceInterface.feed(INPUT_NODE, input_floatValues, processed_bitmap.getWidth(), processed_bitmap.getHeight(), 3);
-            log += "\n feed time: "+ (SystemClock.uptimeMillis() - a);
-            Log.i(TAG,log);
+            log += "\n feed time: " + (SystemClock.uptimeMillis() - a);
+            Log.i(TAG, log);
 
-            a= SystemClock.uptimeMillis();
+            a = SystemClock.uptimeMillis();
             inferenceInterface.run(new String[]{OUTPUT_NODE});
-            log += "\n run time: "+ (SystemClock.uptimeMillis() - a);
-            Log.i(TAG,log);
+            log += "\n run time: " + (SystemClock.uptimeMillis() - a);
+            Log.i(TAG, log);
 
-            a= SystemClock.uptimeMillis();
+            a = SystemClock.uptimeMillis();
             inferenceInterface.fetch(OUTPUT_NODE, output_floatValues);
-            log += "\n fetch time: "+ (SystemClock.uptimeMillis() - a);
-            Log.i(TAG,log);
+            log += "\n fetch time: " + (SystemClock.uptimeMillis() - a);
+            Log.i(TAG, log);
 
-            a= SystemClock.uptimeMillis();
+            a = SystemClock.uptimeMillis();
             for (int i = 0; i < output_intValues.length; ++i) {
                 output_intValues[i] =
                         0xFF000000
@@ -219,8 +230,8 @@ public class transferService extends Service {
                                 | (((int) (output_floatValues[i * 3 + 1])) << 8)
                                 | ((int) (output_floatValues[i * 3 + 2]));
             }
-            log += "\n output_intValues time: "+ (SystemClock.uptimeMillis() - a);
-            Log.i(TAG,log);
+            log += "\n output_intValues time: " + (SystemClock.uptimeMillis() - a);
+            Log.i(TAG, log);
 
 //            Log.i("111", "RGB: " + output_floatValues[0] + " "
 //                    + output_floatValues[1] + " "
@@ -231,10 +242,10 @@ public class transferService extends Service {
             e.printStackTrace();
         }
 
-        a= SystemClock.uptimeMillis();
+        a = SystemClock.uptimeMillis();
         processed_bitmap.setPixels(output_intValues, 0, INPUT_SCALE, 0, 0, INPUT_SCALE, INPUT_SCALE);
-        log += "\n processed_bitmap.setPixels time: "+ (SystemClock.uptimeMillis() - a);
-        Log.i(TAG,log);
+        log += "\n processed_bitmap.setPixels time: " + (SystemClock.uptimeMillis() - a);
+        Log.i(TAG, log);
 //        Toast.makeText(this, "Total time: "+totalTime +"ms", Toast.LENGTH_SHORT).show();
         return image_reverse(processed_bitmap);
     }
@@ -244,13 +255,15 @@ public class transferService extends Service {
         int height = bitmap.getHeight();
         int width = bitmap.getWidth();
 
+//        initial(INPUT_SCALE,INPUT_SCALE);
+
         content_height = height;
         content_width = width;
 
 //        Log.i("image_preProcessing", "content_height: " + content_height + " content_width: " + content_width);
-
-        int new_height;
-        int new_width;
+//
+//        int new_height;
+//        int new_width;
 
         if (height > width) {
             new_height = INPUT_SCALE;
@@ -264,14 +277,21 @@ public class transferService extends Service {
         }
         resized_width = new_width;
         resized_height = new_height;
-//        Log.i("image_preProcessing", "resized_height: " + new_height + " resized_width: " + new_width);
+
+        initial(INPUT_SCALE, INPUT_SCALE);
+
+        Log.i("image_preProcessing", "content_height: " + content_height + " content_width: " + content_width);
+        Log.i("image_preProcessing", "resized_height: " + new_height + " resized_width: " + new_width);
         Bitmap resized_image = Bitmap.createScaledBitmap(bitmap, new_width, new_height, true);
+
 
         Bitmap bmpWithBorder = Bitmap.createBitmap(INPUT_SCALE, INPUT_SCALE, Bitmap.Config.ARGB_8888);
 
         Canvas canvas = new Canvas(bmpWithBorder);
         canvas.drawColor(Color.BLACK);
         canvas.drawBitmap(resized_image, 0, 0, null);
+
+//        return resized_image;
         return bmpWithBorder;
     }
 
@@ -286,21 +306,21 @@ public class transferService extends Service {
     private Bitmap image_reverse(Bitmap bitmap) {
 //        Log.i("image reverse", "intput bitmap Width: " + bitmap.getWidth() + " intput bitmap Height: " + bitmap.getHeight());
 
-        a= SystemClock.uptimeMillis();
+        a = SystemClock.uptimeMillis();
         Bitmap cropped_image = Bitmap.createBitmap(bitmap, 0, 0, resized_width, resized_height, null, false);
         Matrix matrix = new Matrix();
-        float ratio = (float) content_height / resized_height;
+        float ratio = (float) content_height / (resized_height);
         matrix.preScale(ratio, ratio);
         Bitmap resized_bitmap = Bitmap.createBitmap(cropped_image, 0, 0, resized_width, resized_height, matrix, true);
 //        Log.i("image reverse", "resized_bitmap_height: " + resized_bitmap.getWidth() + " resized_bitmap_width: " + resized_bitmap.getHeight());
-        log += "\n image_reverse time: "+ (SystemClock.uptimeMillis() - a);
-        Log.i(TAG,log);
+        log += "\n image_reverse time: " + (SystemClock.uptimeMillis() - a);
+        Log.i(TAG, log);
 
         return resized_bitmap;
     }
 
     private void saveBitmapFile(Bitmap bitmap) {
-         imageFile = createImageFile();//创建用来保存照片的文件
+        imageFile = createImageFile();//创建用来保存照片的文件
         if (imageFile != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 /*7.0以上要通过FileProvider将File转化为Uri*/

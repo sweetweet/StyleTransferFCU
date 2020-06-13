@@ -1,19 +1,12 @@
 package com.example.style;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.UiThread;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationCompat.Builder;
-import androidx.core.content.FileProvider;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -22,60 +15,30 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
-import android.os.RemoteCallbackList;
-import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.bm.library.Info;
 import com.bm.library.PhotoView;
 
-import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
-import org.tensorflow.lite.Interpreter;
-import org.tensorflow.lite.Tensor;
-import org.tensorflow.lite.gpu.GpuDelegate;
-import org.tensorflow.lite.nnapi.NnApiDelegate;
-import org.tensorflow.lite.support.image.TensorImage;
-
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import static android.app.PendingIntent.FLAG_UPDATE_CURRENT;
 import static android.widget.ImageView.ScaleType.FIT_CENTER;
@@ -84,14 +47,17 @@ public class show_styler extends AppCompatActivity {
     public static final int CROP = 3;
     String imgPath;
     ImageView result_imgView;
-    Bitmap result = null;
+    Bitmap cropResult = null;
+    Bitmap transferResultBitmap;
     String resultPath;
     Uri resultUri;
     Uri croppedUri;
     View mParent;
+    View mProcess;
     //点击放大后的背景
     View mBg;
     View mBtnCrop;
+    ImageButton mBtnShare;
     PhotoView mPhotoView;
     Info mInfo;
     AlphaAnimation in = new AlphaAnimation(0, 1);
@@ -101,6 +67,7 @@ public class show_styler extends AppCompatActivity {
 
     private String totalTime;
     public int style_number;
+    public float quality;
 
     ServiceConnection connection;
     public MyReceiver receiver;
@@ -122,7 +89,7 @@ public class show_styler extends AppCompatActivity {
         actionBar.hide();
         result_imgView = findViewById(R.id.result_imgView);
         mBtnCrop = findViewById(R.id.btn_crop);
-
+        mBtnShare = findViewById(R.id.btn_share);
         Intent getImage = getIntent();
         if (getImage != null) {
             Bundle bd = getImage.getExtras();
@@ -130,9 +97,9 @@ public class show_styler extends AppCompatActivity {
             style_number = bd.getInt("style_number");
 //            flag = bd.getInt("model_mode");
             imgPath = bd.getString("imgPath");
-//
-//            new Thread(() -> {
-            Bitmap smallBitmap = getSmallBitmap(imgPath);
+            quality = bd.getFloat("quality");
+            //            new Thread(() -> {
+            Bitmap smallBitmap = MainActivity.getSmallBitmap(imgPath);
             assert smallBitmap != null;
             Bitmap blurBitmap = FastBlurUtil.toBlur(smallBitmap, 10);
 //                runOnUiThread(() -> {
@@ -152,6 +119,7 @@ public class show_styler extends AppCompatActivity {
                     transferService.MyBinder binder = (transferService.MyBinder) service;
                     transferService mService = binder.getService();
                     mService.setImagePath(imgPath);
+                    mService.setQuality(quality);
                     mService.setStyleNumber(style_number);
                 }
 
@@ -162,53 +130,11 @@ public class show_styler extends AppCompatActivity {
             };
 
             bindService(intent, connection, Context.BIND_AUTO_CREATE);
-
-//            intent.putExtra("imagePath",imgPath);
-//            intent.putExtra("styleNumber",style_number);
-//            startService(intent);
             receiver = new MyReceiver();
             IntentFilter filter = new IntentFilter();
             filter.addAction("BROADCAST");
             this.registerReceiver(receiver, filter);
             Log.i("113", "register successfully");
-
-//            new Thread() {
-//                @Override
-//                public void run() {
-////                    Bitmap smallBitmap = getSmallBitmap(imgPath);
-////                    assert smallBitmap != null;
-////                    Log.i("113","width:" +smallBitmap.getWidth()+"height: "+ smallBitmap.getHeight());
-////                    config = smallBitmap.getConfig();
-////
-////                    Bitmap blurBitmap = FastBlurUtil.toBlur(smallBitmap, 10);
-//                    loadModel();
-//                    show_styler.this.runOnUiThread(() -> {
-////                        result_imgView.setImageBitmap(smallBitmap);//显示到ImageView上
-////                        result_imgView.setScaleType(FIT_CENTER);
-////                        result_imgView.setImageBitmap(blurBitmap);
-////                        result_imgView.setClickable(false);
-//
-//                        Toast.makeText(show_styler.this, "style_number:" + style_number, Toast.LENGTH_SHORT).show();
-//                    });
-//
-//                    content_bitmap = BitmapFactory.decodeFile(imgPath);
-//
-//                    final long startTime = SystemClock.uptimeMillis();
-//                    try {
-//                        result = style_image(content_bitmap);
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                    totalTime = SystemClock.uptimeMillis() - startTime;
-//                    String time = decimalFormat.format((float)totalTime / 1000.0);
-//                    saveBitmapFile(result);
-//                    show_styler.this.runOnUiThread(() -> {
-//                        result_imgView.setImageBitmap(result);
-//                        result_imgView.setClickable(true);
-//                        Toast.makeText(show_styler.this, "totoal time: " + time + "s", Toast.LENGTH_SHORT).show();
-//                    });
-//                }
-//            }.start();
         }
 
         in.setDuration(300);
@@ -231,9 +157,18 @@ public class show_styler extends AppCompatActivity {
         });
 
         mParent = findViewById(R.id.result_parent);
+        mProcess = findViewById(R.id.process);
         mBg = findViewById(R.id.result_bg);
         mPhotoView = findViewById(R.id.result_img);
         mPhotoView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+    }
+
+    public void shareImage(View view) {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("image/*");
+        intent.putExtra(Intent.EXTRA_STREAM,resultUri);
+        startActivity(intent);
     }
 
     public class MyReceiver extends BroadcastReceiver {
@@ -248,6 +183,8 @@ public class show_styler extends AppCompatActivity {
             Log.i("113", "result uri: " + resultUri);
             unbindService(connection);
             showResult();
+            mProcess.setVisibility(View.INVISIBLE);
+            mBtnShare.setVisibility(View.VISIBLE);
             if(!isCurrentActivity)
                 sendNotification();
         }
@@ -258,7 +195,7 @@ public class show_styler extends AppCompatActivity {
 
     private void sendNotification() {
         Log.i("113", "notification");
-        Bitmap smallBitmap = getSmallBitmap(resultPath);
+        Bitmap smallBitmap = MainActivity.getSmallBitmap(resultPath);
         Intent intent = new Intent(this, this.getClass());
         intent.setAction(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -271,10 +208,9 @@ public class show_styler extends AppCompatActivity {
         Notification notification = new NotificationCompat.Builder(this, "result")
                 .setContentTitle("风格转换完毕")
                 .setContentText("点击查看")
-                .set
                 .setWhen(System.currentTimeMillis())
-                .setSmallIcon(R.drawable.ic_launcher_background)
-                .setLargeIcon(smallBitmap)
+                .setSmallIcon(R.drawable.ic_launcher)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(),R.drawable.icon1))
                 .setStyle(new NotificationCompat.BigPictureStyle()
                         .bigPicture(smallBitmap)
                         .bigLargeIcon(null))
@@ -285,9 +221,12 @@ public class show_styler extends AppCompatActivity {
     }
 
     private void showResult() {
-        Bitmap bitmap = BitmapFactory.decodeFile(resultPath);
-        assert bitmap != null;
-        result_imgView.setImageBitmap(bitmap);
+        transferResultBitmap = BitmapFactory.decodeFile(resultPath);
+        assert transferResultBitmap != null;
+        int degree = MainActivity.readPictureDegree(resultPath);
+        if (degree != 0)
+            transferResultBitmap= MainActivity.rotaingImageView(degree,transferResultBitmap);
+        result_imgView.setImageBitmap(transferResultBitmap);
         result_imgView.setClickable(true);
         Toast.makeText(show_styler.this, "totoal time: " + totalTime + "s", Toast.LENGTH_SHORT).show();
     }
@@ -362,10 +301,9 @@ public class show_styler extends AppCompatActivity {
     }
 
     public void clickImg(View view) {
-        ImageView imgView = (ImageView) view;
-        mInfo = PhotoView.getImageViewInfo(imgView);
-
-        mPhotoView.setImageDrawable(imgView.getDrawable());
+        Log.i("113","click image");
+        mInfo = PhotoView.getImageViewInfo((ImageView) view);
+        mPhotoView.setImageBitmap(transferResultBitmap);
 
         mBg.startAnimation(in);
         mBg.setVisibility(View.VISIBLE);
@@ -429,11 +367,13 @@ public class show_styler extends AppCompatActivity {
                 mParent.setVisibility(View.GONE);
                 Log.i("113", "cropped image uri: " + croppedUri);
                 if (resultCode == RESULT_OK) {
+                    resultUri = croppedUri;
                     imgPath = MainActivity.getRealFilePath(this, croppedUri);
-                    result = BitmapFactory.decodeFile(imgPath);
-                    result_imgView.setImageBitmap(result);
+//                    cropResult = BitmapFactory.decodeFile(imgPath);
+//                    result_imgView.setImageBitmap(cropResult);
+                    transferResultBitmap = BitmapFactory.decodeFile(imgPath);
+                    result_imgView.setImageBitmap(transferResultBitmap);
                     result_imgView.setClickable(true);
-
                 }
                 break;
             default:

@@ -22,6 +22,7 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
@@ -44,13 +45,18 @@ public class chooseStyle extends AppCompatActivity {
     String imgPath;
     int selected_id = 0;
     int selected_tag = 0;
+    float quality = 0;
 //    int flag = 0;
 
     View mParent;
     //点击放大后的背景
     View mBg;
+    RadioGroup mRadioGroup;
     PhotoView mPhotoView;
     Info mInfo;
+
+    Boolean isQuality = false;
+
     AlphaAnimation in = new AlphaAnimation(0, 1);
     AlphaAnimation out = new AlphaAnimation(1, 0);
 
@@ -71,6 +77,7 @@ public class chooseStyle extends AppCompatActivity {
 
         style_imgView = findViewById(R.id.imageView_style);
         content_imgView = findViewById(R.id.img_content_small_150);
+        mRadioGroup = findViewById(R.id.radioGroup);
 //        change_mod_btn = findViewById(R.id.btn_model_method);
 
         Intent getImage = getIntent();
@@ -106,13 +113,33 @@ public class chooseStyle extends AppCompatActivity {
 
             }
         });
-
+        monitoringRadioGroup();
         mParent = findViewById(R.id.style_parent);
         mBg = findViewById(R.id.style_bg);
         mPhotoView = findViewById(R.id.style_img);
         mPhotoView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
     }
-
+    public void monitoringRadioGroup(){
+        mRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            switch (checkedId){
+                case R.id.radioButtonHigh:
+                    quality = 1.25f;
+//                    Toast.makeText(this, "high", Toast.LENGTH_SHORT).show();
+                    break;
+                case R.id.radioButtonMedium:
+                    quality = 1f;
+//                    Toast.makeText(this, "medium", Toast.LENGTH_SHORT).show();
+                    break;
+                case R.id.radioButtonLow:
+                    quality = 0.75f;
+//                    Toast.makeText(this, "low", Toast.LENGTH_SHORT).show();
+                    break;
+                default:
+                    quality = 0;
+                    break;
+            }
+        });
+    }
     public void show_styleImg(View view) {
 //        将原本选择的图片的背景清空
         Log.i("112","imageview height: "+content_imgView.getHeight()+" width: " + content_imgView.getWidth());
@@ -156,19 +183,28 @@ public class chooseStyle extends AppCompatActivity {
 
 
     public void transfer(View view) {
+        if(quality != 0)
+            isQuality = true;
+
         Intent intent = new Intent(this, show_styler.class);
         intent.putExtra("style_number", selected_tag);
 //        intent.putExtra("model_mode", flag);
         intent.putExtra("imgPath", imgPath);
+        intent.putExtra("quality", quality);
 //        intent.putExtra("flag",false);
         ActivityOptionsCompat options = ActivityOptionsCompat
                 .makeSceneTransitionAnimation(this, content_imgView, "content_image");
         // start the new activity
-        if (selected_id != 0) {
+        if (selected_id != 0 && isQuality) {
             startActivity(intent, options.toBundle());
-        } else {
-            Toast.makeText(this, "選擇一個風格", Toast.LENGTH_SHORT).show();
+        } else if(selected_id == 0 && !isQuality){
+            Toast.makeText(this, "請選擇一個風格以及畫質等級", Toast.LENGTH_SHORT).show();
+        }else if(selected_id == 0){
+            Toast.makeText(this, "請選擇一個風格", Toast.LENGTH_SHORT).show();
+        }else{
+            Toast.makeText(this, "請選擇畫質等級", Toast.LENGTH_SHORT).show();
         }
+
     }
 
 //    public void change_mod(View view) {
@@ -209,7 +245,12 @@ public class chooseStyle extends AppCompatActivity {
         Log.i("112","inSampleSize: "+inSampleSize);
         // 完整解析图片返回bitmap
         options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeFile(filePath, options);
+        Bitmap temp = BitmapFactory.decodeFile(filePath, options);
+        int degree = MainActivity.readPictureDegree(filePath);
+        if (degree!=0)
+            return MainActivity.rotaingImageView(degree,temp);
+        else
+            return temp;
     }
 
     public void clickImg(View view) {

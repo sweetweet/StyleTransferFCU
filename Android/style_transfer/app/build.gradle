@@ -1,16 +1,16 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
     defaultConfig {
         applicationId "com.example.style"
         minSdkVersion 21
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
-            abiFilters 'armeabi-v7a', 'arm64-v8a' ,'x86_64','x86'
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
         }
 
     }
@@ -56,7 +56,8 @@ dependencies {
     implementation 'org.tensorflow:tensorflow-lite-gpu:0.0.0-nightly'
 
     implementation 'com.bm.photoview:library:1.4.1'
-
+//    好看的进度显示
+    implementation 'com.github.VladimirWrites:Lemniscate:2.0.2'
 
     testImplementation 'junit:junit:4.12'
 //    androidTestImplementation 'com.android.support.test:runner:1.0.2'

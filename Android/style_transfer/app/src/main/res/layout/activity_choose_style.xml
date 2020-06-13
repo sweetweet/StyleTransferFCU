@@ -8,14 +8,14 @@
     tools:context=".chooseStyle">
 
     <LinearLayout
-        android:id="@+id/linearLayout3"
+        android:id="@+id/linearLayout1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout5"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout2"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -53,15 +53,13 @@
     </LinearLayout>
     <!--显示选择的风格图片-->
     <LinearLayout
-        android:id="@+id/linearLayout5"
+        android:id="@+id/linearLayout2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="80dip"
         android:gravity="center"
         android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout2"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/linearLayout1"
+        app:layout_constraintBottom_toTopOf="@id/linearLayout3"
         tools:ignore="MissingConstraints">
 
         <ImageView
@@ -72,9 +70,66 @@
             android:scaleType="centerInside" />
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/linearLayout3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical"
+        android:layout_marginStart="10dip"
+        android:layout_marginEnd="10dip"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout4">
+
+        <RadioGroup
+            android:id="@+id/radioGroup"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textViewImageQuanlity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="right"
+                android:text="畫質： "
+                android:textColor="@color/colorText"
+                android:textSize="15sp" />
+
+            <RadioButton
+                android:id="@+id/radioButtonLow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="低"
+                android:textColor="@color/colorText"
+                android:textSize="15sp" />
+
+            <RadioButton
+                android:id="@+id/radioButtonMedium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="中"
+                android:textColor="@color/colorText"
+                android:textSize="15sp" />
+
+            <RadioButton
+                android:id="@+id/radioButtonHigh"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="高"
+                android:textColor="@color/colorText"
+                android:textSize="15sp" />
+
+
+        </RadioGroup>
+    </LinearLayout>
     <!--底部的滚轮-->
     <LinearLayout
-        android:id="@+id/linearLayout2"
+        android:id="@+id/linearLayout4"
         android:layout_width="match_parent"
         android:layout_height="80dip"
         android:layout_marginBottom="40dip"
@@ -209,12 +264,12 @@
         android:visibility="gone">
 
         <ImageButton
-        android:id="@+id/cropButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        app:srcCompat="@android:drawable/ic_menu_edit"
-        tools:ignore="ContentDescription,RtlHardcoded" />
+            android:id="@+id/cropButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            app:srcCompat="@android:drawable/ic_menu_edit"
+            tools:ignore="ContentDescription,RtlHardcoded" />
 
         <ImageView
             android:id="@+id/style_bg"
@@ -229,5 +284,7 @@
             android:layout_height="match_parent" />
 
     </FrameLayout>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
