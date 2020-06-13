@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_centerHorizontal="true"
+    android:layout_centerVertical="true"
+    android:background="@drawable/bg"
+    tools:context=".show_styler">
+
+    <ImageView
+        android:id="@+id/result_imgView"
+        android:layout_width="300dip"
+        android:layout_height="300dip"
+        android:scaleType="centerInside"
+        android:onClick="clickImg"
+        android:transitionName="content_image"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:srcCompat="@tools:sample/avatars"
+        tools:ignore="ContentDescription" />
+
+    <ImageButton
+        android:id="@+id/btn_share"
+        android:layout_width="40dip"
+        android:layout_height="40dip"
+        android:layout_gravity="right"
+        android:layout_marginTop="43dp"
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/ic_share_black_24dp"
+        android:onClick="shareImage"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription,RtlHardcoded"
+        android:visibility="gone"/>
+
+    <FrameLayout
+        android:id="@+id/result_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/result_bg"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#8B7B8B"
+            tools:ignore="ContentDescription" />
+
+        <com.bm.library.PhotoView
+            android:id="@+id/result_img"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <ImageButton
+            android:id="@+id/btn_crop"
+            android:layout_width="40dip"
+            android:layout_height="40dip"
+            android:layout_gravity="right"
+            android:layout_marginTop="43dip"
+            android:layout_marginEnd="20dip"
+            android:onClick="cropImage"
+            android:background="@drawable/ic_crop_white_24dp"
+            tools:ignore="ContentDescription,RtlHardcoded" />
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/process"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_gravity="center">
+
+            <com.vlad1m1r.lemniscate.BernoullisProgressView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                app:distanceFromCenter="8"
+                app:duration="1250"
+                app:lineColor="@color/colorPrimary"
+                app:maxLineLength="0.8"
+                app:minLineLength="0.8"
+                app:numberOfCycles="4"
+                app:precision="100"
+                app:radiusFixed="7"
+                app:radiusMoving="4"
+                app:strokeWidth="5dp" />
+        </LinearLayout>
+    </FrameLayout>
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

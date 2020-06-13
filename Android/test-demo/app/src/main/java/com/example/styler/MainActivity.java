@@ -48,7 +48,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final String MODEL_FILE_PATH = "file:///android_asset/mobilenet_v1_1.0_224_quant.tflite";
     //private static final String MODEL_FILE = "file:///android_asset/mobilenet_v1_1.0_224_quant.tflite";
-    private static final String MODEL_FILE = "frozen_graph.tflite";
+//    private static final String MODEL_FILE = "frozen_graph.tflite";
+    private static final String MODEL_FILE = "models_640.tflite";
     //    private static final String MODEL_FILE = "mobilenet_v1_1.0_224_quant.tflite";
     //private static final String MODEL_FILE = "file:///android_asset/second_style.pb";
     private static final String INPUT_NODE = "input_image";
@@ -127,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void transform() throws IOException {
 
-//    -------------------------------show image size----------------------------------------------
+//    -------------------------------show image size    ----------------------------------------------
         String message = "height: " + image.getHeight() + " width：" + image.getWidth();
         Log.i("height", message);
 
@@ -165,7 +166,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         message = "run tflite successfully";
         Log.i("run success", message);
 
-//        TensorFlowInferenceInterface inferenceInterface = new TensorFlowInferenceInterface(getAssets(), MODEL_FILE_PATH);
+        TensorFlowInferenceInterface inferenceInterface = new TensorFlowInferenceInterface(getAssets(), MODEL_FILE_PATH);
 ////        inferenceInterface.feed(INPUT_NODE, floatValues, 1, trans_image.getWidth(), trans_image.getHeight(), 3);
 //        inferenceInterface.feed(INPUT_NODE, floatValues, 1, image.getWidth(), image.getHeight(), 3);
 //

@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg2"
+    tools:context=".chooseStyle">
+
+    <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.example.style.roundImageView
+            android:id="@+id/img_content_small_150"
+            android:layout_width="120dip"
+            android:layout_height="120dip"
+            android:layout_marginStart="10dip"
+            android:adjustViewBounds="true"
+            android:onClick="go_back"
+            android:scaleType="fitCenter"
+            android:transitionName="content_image"
+            tools:ignore="ContentDescription"
+            tools:srcCompat="@tools:sample/avatars" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="18dp" />
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="101dp"
+            android:layout_height="59dp"
+            android:layout_marginEnd="16dip"
+            android:background="@drawable/btn_transfer_bkgd"
+            android:onClick="transfer"
+            android:text="next"
+            android:textColor="#FAF0E6"
+            android:textColorLink="#CD853F"
+            android:textSize="20dp" />
+
+
+    </LinearLayout>
+    <!--显示选择的风格图片-->
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/linearLayout1"
+        app:layout_constraintBottom_toTopOf="@id/linearLayout3"
+        tools:ignore="MissingConstraints">
+
+        <ImageView
+            android:id="@+id/imageView_style"
+            android:layout_width="200dip"
+            android:layout_height="200dip"
+            android:onClick="clickImg"
+            android:scaleType="centerInside" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical"
+        android:layout_marginStart="10dip"
+        android:layout_marginEnd="10dip"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout4">
+
+        <RadioGroup
+            android:id="@+id/radioGroup"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textViewImageQuanlity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="right"
+                android:text="畫質： "
+                android:textColor="@color/colorText"
+                android:textSize="15sp" />
+
+            <RadioButton
+                android:id="@+id/radioButtonLow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="低"
+                android:textColor="@color/colorText"
+                android:textSize="15sp" />
+
+            <RadioButton
+                android:id="@+id/radioButtonMedium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="中"
+                android:textColor="@color/colorText"
+                android:textSize="15sp" />
+
+            <RadioButton
+                android:id="@+id/radioButtonHigh"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="高"
+                android:textColor="@color/colorText"
+                android:textSize="15sp" />
+
+
+        </RadioGroup>
+    </LinearLayout>
+    <!--底部的滚轮-->
+    <LinearLayout
+        android:id="@+id/linearLayout4"
+        android:layout_width="match_parent"
+        android:layout_height="80dip"
+        android:layout_marginBottom="40dip"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:layout_editor_absoluteX="8dip">
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:ignore="UselessParent">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                tools:ignore="ContentDescription">
+
+                <ImageView
+                    android:id="@+id/img_style_1"
+                    style="@style/Scroll_image_style"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/style_1_starry"
+                    android:tag="1" />
+
+                <ImageView
+                    android:id="@+id/img_style_2"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_2_seated_nude"
+                    android:tag="2" />
+
+                <ImageView
+                    android:id="@+id/img_style_3"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_3_the_scream"
+                    android:tag="3" />
+
+                <ImageView
+                    android:id="@+id/img_style_4"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_4_the_shipwreck_of_the_minotaur"
+                    android:tag="4" />
+
+                <ImageView
+                    android:id="@+id/img_style_5"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_5_wave"
+                    android:tag="5" />
+
+                <ImageView
+                    android:id="@+id/img_style_6"
+                    style="@style/Scroll_image_style"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/style_6_feathers"
+                    android:tag="6" />
+
+                <ImageView
+                    android:id="@+id/img_style_7"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_7_guernica"
+                    android:tag="7" />
+
+                <ImageView
+                    android:id="@+id/img_style_8"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_8_udnie"
+                    android:tag="8" />
+
+                <ImageView
+                    android:id="@+id/img_style_9"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_9_white_zig_zags"
+                    android:tag="9" />
+
+                <ImageView
+                    android:id="@+id/img_style_10"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_10_yellow_sunset"
+                    android:tag="10" />
+
+                <ImageView
+                    android:id="@+id/img_style_11"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_11_three_fishing_boats"
+                    android:tag="11" />
+
+                <ImageView
+                    android:id="@+id/img_style_12"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_12_rain_princess"
+                    android:tag="12" />
+
+                <ImageView
+                    android:id="@+id/img_style_13"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_13_edith_with_striped_dress"
+                    android:tag="13" />
+
+                <ImageView
+                    android:id="@+id/img_style_14"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_14_colors_from_a_distance"
+                    android:tag="14" />
+
+                <ImageView
+                    android:id="@+id/img_style_15"
+                    style="@style/Scroll_image_style"
+                    android:src="@drawable/style_15_sunrise"
+                    android:tag="15" />
+
+            </LinearLayout>
+        </HorizontalScrollView>
+    </LinearLayout>
+
+    <!--<Button-->
+    <!--android:id="@+id/btn_model_method"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_marginTop="0dp"-->
+    <!--android:layout_marginEnd="16dp"-->
+    <!--android:inputType="textMultiLine"-->
+    <!--android:tag="1"-->
+    <!--android:onClick="change_mod"-->
+    <!--android:text="@string/tensorflow_ninference_ninterface"-->
+    <!--app:layout_constraintEnd_toEndOf="parent"-->
+    <!--app:layout_constraintTop_toBottomOf="@+id/linearLayout3" />-->
+
+    <FrameLayout
+        android:id="@+id/style_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <ImageButton
+            android:id="@+id/cropButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            app:srcCompat="@android:drawable/ic_menu_edit"
+            tools:ignore="ContentDescription,RtlHardcoded" />
+
+        <ImageView
+            android:id="@+id/style_bg"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#8B7B8B"
+            tools:ignore="ContentDescription" />
+
+        <com.bm.library.PhotoView
+            android:id="@+id/style_img"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
